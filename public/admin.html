@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Vote 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04130c; --bv:#008751; --or:#FCD116; --rouge:#E8112D; --vert:#00a859; --vert2:#007a3d;
+  --verre:rgba(255,255,255,.06); --verre2:rgba(255,255,255,.1); --trait:rgba(255,255,255,.14);
+  --texte:#f5f7ff; --doux:rgba(245,247,255,.62);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',system-ui,sans-serif;color:var(--texte);background:var(--bg);min-height:100vh;padding:0 0 60px}
+
+/* ---------- Décor ---------- */
+.decor{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aurore{position:absolute;border-radius:50%;filter:blur(100px);mix-blend-mode:screen}
+.a1{width:50vmax;height:50vmax;background:radial-gradient(circle,var(--bv),transparent 65%);top:-22vmax;left:-14vmax;opacity:.55}
+.a2{width:40vmax;height:40vmax;background:radial-gradient(circle,var(--rouge),transparent 65%);bottom:-20vmax;right:-12vmax;opacity:.3}
+.a3{width:28vmax;height:28vmax;background:radial-gradient(circle,var(--or),transparent 65%);top:40%;left:60%;opacity:.16}
+
+.drapeau{position:fixed;top:0;left:0;right:0;height:6px;z-index:6;display:flex}
+.drapeau b{flex:1}.drapeau b:nth-child(1){background:var(--bv)}.drapeau b:nth-child(2){background:var(--or)}.drapeau b:nth-child(3){background:var(--rouge)}
+
+main{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+
+/* ---------- En-tête ---------- */
+header{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:36px 0 26px}
+.emb{width:54px;flex-shrink:0;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+.titre{flex:1;min-width:200px}
+.titre h1{font-weight:800;font-size:clamp(1.5rem,3.6vw,2.2rem);letter-spacing:-.02em}
+.titre p{color:var(--doux);font-weight:300;font-size:.95rem;margin-top:2px}
+.statut{display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;font-weight:600;
+  background:var(--verre);border:1px solid var(--trait);backdrop-filter:blur(12px)}
+.statut .led{width:11px;height:11px;border-radius:50%;background:var(--doux);box-shadow:0 0 0 0 transparent;transition:.4s}
+.statut.ouvert .led{background:#4ade80;box-shadow:0 0 14px 2px rgba(74,222,128,.7);animation:pulse 2s infinite}
+.statut.ferme .led{background:var(--rouge);box-shadow:0 0 12px 1px rgba(232,17,45,.6)}
+@keyframes pulse{50%{box-shadow:0 0 18px 5px rgba(74,222,128,.35)}}
+
+/* ---------- Tuiles de synthèse ---------- */
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
+.tuile{position:relative;overflow:hidden;padding:22px 24px;border-radius:20px;background:var(--verre);border:1px solid var(--trait);backdrop-filter:blur(14px)}
+.tuile .etiq{color:var(--doux);font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tuile .val{font-size:clamp(2rem,5vw,2.8rem);font-weight:800;line-height:1.1;margin-top:8px;letter-spacing:-.02em}
+.tuile .det{color:var(--doux);font-size:.9rem;font-weight:300;margin-top:4px}
+.tuile .anneau{position:absolute;right:18px;top:18px;width:54px;height:54px}
+.tuile.ok .val{color:#4ade80}
+.tuile.alerte .val{color:var(--or)}
+
+/* ---------- Bloc résultats ---------- */
+.bloc{padding:26px clamp(18px,3vw,32px);border-radius:24px;background:var(--verre);border:1px solid var(--trait);backdrop-filter:blur(14px)}
+.bloc-tete{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.bloc-tete h2{font-size:1.3rem;font-weight:600}
+.maj{color:var(--doux);font-size:.85rem;font-weight:300}
+
+.ligne{display:grid;grid-template-columns:minmax(120px,190px) 1fr auto;align-items:center;gap:16px;padding:12px 0}
+.ligne+.ligne{border-top:1px solid rgba(255,255,255,.06)}
+.ligne .cand{font-weight:600;font-size:1.05rem;display:flex;align-items:center;gap:10px}
+.ligne .pastille{width:12px;height:12px;border-radius:4px;background:var(--vert);flex-shrink:0}
+.ligne.blanc .pastille{background:var(--doux)}
+.ligne.tete .pastille{background:var(--or)}
+.piste{height:26px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.jauge{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--vert2),var(--vert));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.ligne.blanc .jauge{background:linear-gradient(90deg,#4a5d52,#7a8a81)}
+.ligne.tete .jauge{background:linear-gradient(90deg,#e8b400,var(--or))}
+.score{text-align:right;min-width:92px}
+.score .n{font-weight:800;font-size:1.25rem}
+.score .pct{color:var(--doux);font-size:.85rem;font-weight:300}
+
+/* ---------- Commandes ---------- */
+.commandes{display:flex;flex-wrap:wrap;gap:14px;margin:24px 0 10px}
+.btn{font:inherit;font-weight:600;font-size:1rem;cursor:pointer;border:0;color:#1a1200;padding:14px 28px;border-radius:14px;
+  background:linear-gradient(135deg,#ffe97a,var(--or) 55%,#e8b400);box-shadow:0 10px 26px rgba(252,209,22,.3);
+  transition:transform .2s,box-shadow .3s,opacity .3s}
+.btn:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 16px 36px rgba(252,209,22,.45)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn.vert{background:linear-gradient(135deg,#1fc57a,var(--vert) 55%,var(--vert2));color:#fff;box-shadow:0 10px 26px rgba(0,168,89,.4)}
+.btn.rouge{background:linear-gradient(135deg,#ff6b7f,var(--rouge) 60%,#b00d22);color:#fff;box-shadow:0 10px 26px rgba(232,17,45,.35)}
+.btn.contour{background:var(--verre2);color:var(--texte);border:1.5px solid var(--trait);box-shadow:none}
+.btn.contour:hover{background:rgba(255,255,255,.16)}
+
+/* ---------- Connexion ---------- */
+.voile{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:24px;
+  background:rgba(4,19,12,.9);backdrop-filter:blur(16px);transition:opacity .4s,visibility .4s}
+.voile.cache{opacity:0;visibility:hidden}
+.carte-co{width:min(420px,100%);padding:38px 34px;border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03));
+  border:1px solid var(--trait);backdrop-filter:blur(16px);box-shadow:0 30px 70px rgba(0,0,0,.5);text-align:center}
+.carte-co h2{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.carte-co p{color:var(--doux);font-weight:300;font-size:.92rem;margin-bottom:24px}
+.champ{width:100%;font:inherit;font-size:1rem;color:var(--texte);padding:15px 18px;border-radius:14px;
+  background:rgba(0,0,0,.25);border:1.5px solid var(--trait);outline:none;transition:border .2s}
+.champ:focus{border-color:var(--or)}
+.erreur-co{color:#ff8a98;font-size:.88rem;font-weight:600;min-height:1.2em;margin:12px 0 4px}
+
+/* ---------- Notification ---------- */
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,160%);z-index:50;max-width:min(92vw,520px);
+  display:flex;align-items:center;gap:12px;padding:15px 22px;border-radius:14px;font-weight:600;
+  background:rgba(7,33,15,.94);border:1px solid var(--trait);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.5);
+  transition:transform .45s cubic-bezier(.2,.9,.2,1)}
+.toast.on{transform:translate(-50%,0)}
+.toast.erreur{border-color:rgba(232,17,45,.6)}
+.toast .pastille{width:12px;height:12px;border-radius:50%;background:var(--or);flex-shrink:0}
+.toast.erreur .pastille{background:var(--rouge)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="decor"><div class="aurore a1"></div><div class="aurore a2"></div><div class="aurore a3"></div></div>
+<div class="drapeau" aria-hidden="true"><b></b><b></b><b></b></div>
+
+<main>
+  <header>
+    <svg class="emb" viewBox="0 0 120 80" aria-hidden="true">
+      <rect width="120" height="80" rx="8" fill="#008751"/>
+      <path d="M48 0h64a8 8 0 0 1 8 8v32H48z" fill="#FCD116"/>
+      <path d="M48 40h72v32a8 8 0 0 1-8 8H48z" fill="#E8112D"/>
+      <path d="M0 8a8 8 0 0 1 8-8h40v80H8a8 8 0 0 1-8-8z" fill="#008751"/>
+    </svg>
+    <div class="titre">
+      <h1>Administration du scrutin</h1>
+      <p>Vote 2026 — tableau de bord en temps réel</p>
+    </div>
+    <div class="statut" id="statut"><span class="led"></span><span id="statutTexte">—</span></div>
+  </header>
+
+  <section class="tuiles">
+    <div class="tuile">
+      <div class="etiq">Participation</div>
+      <div class="val" id="tParticipation">—</div>
+      <div class="det" id="tParticipationDet">en attente…</div>
+      <svg class="anneau" viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/>
+        <circle id="anneauJauge" cx="18" cy="18" r="15.5" fill="none" stroke="var(--or)" stroke-width="4"
+          stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="97.4" transform="rotate(-90 18 18)" style="transition:stroke-dashoffset .8s"/>
+      </svg>
+    </div>
+    <div class="tuile">
+      <div class="etiq">Votes exprimés</div>
+      <div class="val" id="tVotes">—</div>
+      <div class="det">bulletins enregistrés</div>
+    </div>
+    <div class="tuile ok" id="tuileIntegrite">
+      <div class="etiq">Intégrité</div>
+      <div class="val" id="tIntegrite">—</div>
+      <div class="det" id="tIntegriteDet">écart entre compteurs et votants</div>
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="bloc-tete">
+      <h2>Résultats</h2>
+      <span class="maj" id="maj">—</span>
+    </div>
+    <div id="resultats"><p class="maj">Chargement…</p></div>
+
+    <div class="commandes">
+      <button class="btn vert" id="btnOuvrir">Ouvrir le scrutin</button>
+      <button class="btn rouge" id="btnClore">Clore le scrutin</button>
+      <button class="btn contour" id="btnActualiser">Actualiser</button>
+      <button class="btn contour" id="btnDeconnexion" style="margin-left:auto">Déconnexion</button>
+    </div>
+  </section>
+</main>
+
+<!-- Connexion administrateur -->
+<div class="voile" id="voile">
+  <form class="carte-co" id="formCo">
+    <h2>Accès administrateur</h2>
+    <p>Saisissez la clé d'administration pour accéder au tableau de bord.</p>
+    <input class="champ" id="cle" type="password" placeholder="Clé d'administration" autocomplete="off" autofocus>
+    <div class="erreur-co" id="erreurCo"></div>
+    <button class="btn" type="submit" style="width:100%">Se connecter</button>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="pastille"></span><span id="toastTexte"></span></div>
+
+<script>
+const API = "/api/v1";
+const CIRC = 2 * Math.PI * 15.5;
+
+let cle = sessionStorage.getItem("vote2026.cle") || null;
+let timer = null;
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Notification ---------- */
+let toastTimer = null;
+function notifier(message, type){
+  $("toastTexte").textContent = message;
+  $("toast").classList.toggle("erreur", type === "erreur");
+  $("toast").classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $("toast").classList.remove("on"), 4000);
+}
+
+/* ---------- Appels authentifiés ---------- */
+async function apiAdmin(chemin, options = {}){
+  const r = await fetch(`${API}/admin/${chemin}`, {
+    ...options,
+    headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  if (r.status === 401){
+    deconnecter("Clé d'administration invalide.");
+    throw new Error("401");
+  }
+  return r;
+}
+
+/* ---------- Rendu ---------- */
+function rendre(data){
+  const ouvert = data.poll === "OPEN";
+  $("statut").className = "statut " + (ouvert ? "ouvert" : "ferme");
+  $("statutTexte").textContent = ouvert ? "Scrutin ouvert" : "Scrutin clos";
+  $("btnOuvrir").disabled = ouvert;
+  $("btnClore").disabled = !ouvert;
+
+  const { voted, registered } = data.participation;
+  const taux = registered > 0 ? Math.round((voted / registered) * 100) : 0;
+  $("tParticipation").textContent = taux + " %";
+  $("tParticipationDet").textContent = `${voted} votant(s) sur ${registered} inscrit(s)`;
+  $("anneauJauge").style.strokeDashoffset = CIRC * (1 - taux / 100);
+  $("tVotes").textContent = voted;
+
+  const gap = data.integrity.gap;
+  const tuile = $("tuileIntegrite");
+  tuile.className = "tuile " + (gap === 0 ? "ok" : "alerte");
+  $("tIntegrite").textContent = gap === 0 ? "Cohérent" : (gap > 0 ? `+${gap}` : gap);
+  $("tIntegriteDet").textContent = gap === 0 ? "somme des compteurs = votants" : "écart détecté — à investiguer";
+
+  const total = data.tally.reduce((s, c) => s + c.count, 0);
+  const max = Math.max(1, ...data.tally.map((c) => c.count));
+  const tete = total > 0 ? Math.max(...data.tally.map((c) => c.count)) : -1;
+
+  $("resultats").innerHTML = data.tally.map((c) => {
+    const estTete = c.count === tete && c.count > 0;
+    const classe = c.id === 0 ? "blanc" : (estTete ? "tete" : "");
+    const pct = total > 0 ? Math.round((c.count / total) * 100) : 0;
+    const largeur = (c.count / max) * 100;
+    return `
+    <div class="ligne ${classe}">
+      <div class="cand"><span class="pastille"></span>${c.label}</div>
+      <div class="piste"><div class="jauge" style="width:${largeur}%"></div></div>
+      <div class="score"><div class="n">${c.count}</div><div class="pct">${pct} %</div></div>
+    </div>`;
+  }).join("");
+
+  $("maj").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR");
+}
+
+/* ---------- Boucle temps réel (2 s, §7.12) ---------- */
+async function rafraichir(){
+  try {
+    const r = await apiAdmin("results");
+    rendre(await r.json());
+  } catch (e) {
+    if (e.message !== "401") notifier("Serveur injoignable.", "erreur");
+  }
+}
+
+function demarrerBoucle(){
+  clearInterval(timer);
+  rafraichir();
+  timer = setInterval(rafraichir, 2000);
+}
+
+/* ---------- Commandes ---------- */
+async function changerScrutin(state){
+  try {
+    await apiAdmin("poll", { method: "POST", body: JSON.stringify({ state }) });
+    notifier(state === "OPEN" ? "Scrutin ouvert." : "Scrutin clos.");
+    rafraichir();
+  } catch (e) {
+    if (e.message !== "401") notifier("Action impossible.", "erreur");
+  }
+}
+
+$("btnOuvrir").onclick = () => changerScrutin("OPEN");
+$("btnClore").onclick = () => changerScrutin("CLOSED");
+$("btnActualiser").onclick = rafraichir;
+$("btnDeconnexion").onclick = () => deconnecter();
+
+/* ---------- Connexion ---------- */
+function connecter(){
+  $("voile").classList.add("cache");
+  demarrerBoucle();
+}
+
+function deconnecter(message){
+  clearInterval(timer);
+  cle = null;
+  sessionStorage.removeItem("vote2026.cle");
+  $("voile").classList.remove("cache");
+  $("cle").value = "";
+  $("erreurCo").textContent = message || "";
+  $("cle").focus();
+}
+
+$("formCo").onsubmit = async (e) => {
+  e.preventDefault();
+  const saisie = $("cle").value.trim();
+  if (!saisie) return;
+  cle = saisie;
+  try {
+    const r = await fetch(`${API}/admin/results`, { headers: { Authorization: `Bearer ${cle}` } });
+    if (r.status === 401){
+      $("erreurCo").textContent = "Clé incorrecte.";
+      cle = null;
+      return;
+    }
+    sessionStorage.setItem("vote2026.cle", cle);
+    $("erreurCo").textContent = "";
+    connecter();
+  } catch {
+    $("erreurCo").textContent = "Serveur injoignable.";
+    cle = null;
+  }
+};
+
+if (cle) connecter();
+</script>
+</body>
+</html>

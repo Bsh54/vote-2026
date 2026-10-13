@@ -1,0 +1,9 @@
+{
+  "candidates": [
+    { "id": 1, "label": "Alex Martin" },
+    { "id": 2, "label": "Sam Diallo" },
+    { "id": 3, "label": "Maya Laurent" },
+    { "id": 0, "label": "Vote blanc" }
+  ],
+  "registered": 8
+}

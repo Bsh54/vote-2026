@@ -1,0 +1,12 @@
+# Fichiers générés à l'exécution
+data/urne.json
+data/state.json
+
+# Dépendances et environnement
+node_modules/
+.env
+.env.local
+
+# Système
+.DS_Store
+Thumbs.db
